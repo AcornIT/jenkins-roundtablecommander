@@ -2,10 +2,14 @@ package jenkins.plugins.roundtable;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.export.Exported;
 
 import hudson.Extension;
 import hudson.FilePath;
@@ -20,19 +24,31 @@ import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
 import net.sf.json.JSONObject;
 
-public class RoundtableSCM extends SCM {
+public class RoundtableSCM extends SCM implements Serializable {
 
-	String repositoryUrl;
+	private final RoundtableRepositoryBrowser browser;
+	private final List<UserRemoteConfig> userRemoteConfigs;
+	private final String workingDirectory;
+
+	private static final Logger logger = Logger.getLogger(RoundtableSCM.class.getName());
+	private static final long serialVersionUID = 1L;
 
 	@DataBoundConstructor
-	public RoundtableSCM(String repositoryUrl) {
-		this.repositoryUrl = repositoryUrl;
+	public RoundtableSCM(List<UserRemoteConfig> userRemoteConfigs, String workingDirectory) {
+		this.workingDirectory = workingDirectory;
+		this.userRemoteConfigs = userRemoteConfigs;
+		this.browser = new RoundtableRepositoryBrowser(this);
 	}
 
 	@Override
 	public void checkout(Run<?, ?> build, Launcher launcher, FilePath workspace, TaskListener listener,
 			File changelogFile, SCMRevisionState baseline) throws IOException, InterruptedException {
-		System.out.println("checkout()");
+		if (this.userRemoteConfigs != null) {
+			for (UserRemoteConfig remote : userRemoteConfigs) {
+				System.out.println("checkout - " + remote.getUrl() + " " + remote.getCredentialsId());
+			}
+		}
+		
 	}
 
 	@Override
@@ -41,8 +57,33 @@ public class RoundtableSCM extends SCM {
 		return new RoundtableChangeLogParser();
 	}
 
-	@Extension
+	@Override
+	public boolean requiresWorkspaceForPolling() {
+		return false;
+	}
+
+	@Override
+	@Exported
+	public RoundtableRepositoryBrowser getBrowser() {
+		return browser;
+	}
+
+	@Override
+	public DescriptorImpl getDescriptor() {
+		return DescriptorImpl.DESCRIPTOR;
+	}
+
+	public String getWorkingDirectory() {
+		return workingDirectory;
+	}
+
+	public List<UserRemoteConfig> getUserRemoteConfigs() {
+		return userRemoteConfigs;
+	}
+
 	public static final class DescriptorImpl extends SCMDescriptor<RoundtableSCM> {
+		@Extension
+		public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
 
 		private String globalConfigName;
 		private boolean showEntireCommitSummaryInChanges;
@@ -50,6 +91,14 @@ public class RoundtableSCM extends SCM {
 		public DescriptorImpl() {
 			super(RoundtableSCM.class, RoundtableRepositoryBrowser.class);
 			load();
+		}
+
+		@Override
+		public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+			System.out.println("new instance: " + formData.toString());
+			RoundtableSCM scm = req.bindJSON(RoundtableSCM.class, formData);
+
+			return scm;
 		}
 
 		public boolean isShowEntireCommitSummaryInChanges() {
@@ -89,7 +138,8 @@ public class RoundtableSCM extends SCM {
 
 		@Override
 		public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-			req.bindJSON(this, formData);
+			System.out.println("config: " + formData.toString());
+
 			save();
 			return true;
 		}
