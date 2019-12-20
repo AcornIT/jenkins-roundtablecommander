@@ -4,12 +4,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
+
+import com.cloudbees.plugins.credentials.CredentialsMatcher;
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 
 import hudson.Extension;
 import hudson.FilePath;
@@ -33,6 +36,9 @@ public class RoundtableSCM extends SCM implements Serializable {
 	private static final Logger logger = Logger.getLogger(RoundtableSCM.class.getName());
 	private static final long serialVersionUID = 1L;
 
+	public static CredentialsMatcher CREDENTIALS_MATCHER = CredentialsMatchers
+			.anyOf(CredentialsMatchers.instanceOf(StandardUsernamePasswordCredentials.class));
+
 	@DataBoundConstructor
 	public RoundtableSCM(List<UserRemoteConfig> userRemoteConfigs, String workingDirectory) {
 		this.workingDirectory = workingDirectory;
@@ -43,17 +49,12 @@ public class RoundtableSCM extends SCM implements Serializable {
 	@Override
 	public void checkout(Run<?, ?> build, Launcher launcher, FilePath workspace, TaskListener listener,
 			File changelogFile, SCMRevisionState baseline) throws IOException, InterruptedException {
-		if (this.userRemoteConfigs != null) {
-			for (UserRemoteConfig remote : userRemoteConfigs) {
-				System.out.println("checkout - " + remote.getUrl() + " " + remote.getCredentialsId());
-			}
-		}
-		
+
+		workspace.act(new CheckoutCallable(build, launcher, listener, changelogFile, baseline, this));
 	}
 
 	@Override
 	public ChangeLogParser createChangeLogParser() {
-		System.out.println("createChangeLogParser()");
 		return new RoundtableChangeLogParser();
 	}
 
@@ -95,7 +96,6 @@ public class RoundtableSCM extends SCM implements Serializable {
 
 		@Override
 		public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-			System.out.println("new instance: " + formData.toString());
 			RoundtableSCM scm = req.bindJSON(RoundtableSCM.class, formData);
 
 			return scm;
@@ -138,23 +138,8 @@ public class RoundtableSCM extends SCM implements Serializable {
 
 		@Override
 		public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-			System.out.println("config: " + formData.toString());
-
 			save();
 			return true;
-		}
-
-		/**
-		 * Fill in the environment variables for launching git
-		 * 
-		 * @param env base environment variables
-		 */
-		public void populateEnvironmentVariables(Map<String, String> env) {
-			String name = getGlobalConfigName();
-			if (name != null) {
-				env.put("RTB_COMMITTER_NAME", name);
-				env.put("RTB_AUTHOR_NAME", name);
-			}
 		}
 
 	}

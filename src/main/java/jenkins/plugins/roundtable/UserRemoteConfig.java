@@ -21,6 +21,10 @@ import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
+import ro.acorn.roundtable.rtbclient.Roundtable;
+import ro.acorn.roundtable.rtbclient.RoundtableClient;
+import ro.acorn.roundtable.rtbclient.RoundtableTaskListener;
+
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -181,8 +185,7 @@ public class UserRemoteConfig extends AbstractDescribableImpl<UserRemoteConfig> 
 				environment = computer == null ? new EnvVars() : computer.buildEnvironment(TaskListener.NULL);
 			}
 
-//			GitClient git = Git.with(TaskListener.NULL, environment).using(GitTool.getDefaultInstallation().getGitExe())
-//					.getClient();
+//			RoundtableClient client = Roundtable.with(RoundtableTaskListener.NULL).getClient();
 //			StandardCredentials credential = lookupCredentials(item, credentialsId, url);
 //			git.addDefaultCredentials(credential);
 //
