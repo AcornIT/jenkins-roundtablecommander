@@ -21,9 +21,6 @@ f.advanced {
     f.entry(title:_("Name"), field:"name") {
         f.textbox()
     }
-    f.entry(title:_("Workspaces"), field:"workspaces") {
-        f.textbox()
-    }
 }
 
 f.entry {

@@ -5,8 +5,6 @@ import com.cloudbees.plugins.credentials.domains.HostnamePortRequirement;
 import com.cloudbees.plugins.credentials.domains.HostnameRequirement;
 import com.cloudbees.plugins.credentials.domains.PathRequirement;
 import com.cloudbees.plugins.credentials.domains.SchemeRequirement;
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-import edu.umd.cs.findbugs.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,6 +12,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 public class RoundtableURIRequirementBuilder {
 
@@ -42,8 +43,6 @@ public class RoundtableURIRequirementBuilder {
 	 */
 	private static final String OPT_NAME_P = "(?:(?:[^\\\\/]+[\\\\/]+)*[^\\\\/]+[\\\\/]*)"; //$NON-NLS-1$
 
-	private static final long serialVersionUID = 1L;
-
 	/**
 	 * A pattern matching standard URI: </br>
 	 * <code>scheme "://" user_password? hostname? portnumber? path</code>
@@ -62,7 +61,7 @@ public class RoundtableURIRequirementBuilder {
 	/**
 	 * The list of requirements.
 	 */
-	@NonNull
+	@Nonnull
 	private final List<DomainRequirement> requirements;
 
 	/**
@@ -70,7 +69,7 @@ public class RoundtableURIRequirementBuilder {
 	 *
 	 * @param requirements the list of requirements.
 	 */
-	private RoundtableURIRequirementBuilder(@NonNull List<DomainRequirement> requirements) {
+	private RoundtableURIRequirementBuilder(@Nonnull List<DomainRequirement> requirements) {
 		this.requirements = new ArrayList<>(requirements);
 	}
 
@@ -79,7 +78,7 @@ public class RoundtableURIRequirementBuilder {
 	 *
 	 * @return a new empty builder.
 	 */
-	@NonNull
+	@Nonnull
 	public static RoundtableURIRequirementBuilder create() {
 		return new RoundtableURIRequirementBuilder(Collections.<DomainRequirement>emptyList());
 	}
@@ -89,7 +88,7 @@ public class RoundtableURIRequirementBuilder {
 	 *
 	 * @return a new builder with the same requirements as this builder.
 	 */
-	@NonNull
+	@Nonnull
 	public RoundtableURIRequirementBuilder duplicate() {
 		return new RoundtableURIRequirementBuilder(requirements);
 	}
@@ -100,7 +99,7 @@ public class RoundtableURIRequirementBuilder {
 	 * @param uri the URI to create the requirements of.
 	 * @return a new builder with the requirements of the supplied URI.
 	 */
-	@NonNull
+	@Nonnull
 	public static RoundtableURIRequirementBuilder fromUri(@CheckForNull String uri) {
 		return create().withUri(uri);
 	}
@@ -111,7 +110,7 @@ public class RoundtableURIRequirementBuilder {
 	 * @param uri the URI.
 	 * @return {@code this}.
 	 */
-	@NonNull
+	@Nonnull
 	public RoundtableURIRequirementBuilder withUri(@CheckForNull String uri) {
 		if (uri != null) {
 			Matcher matcher = FULL_URI.matcher(uri);
@@ -137,7 +136,7 @@ public class RoundtableURIRequirementBuilder {
 	 *
 	 * @return {@code this}.
 	 */
-	@NonNull
+	@Nonnull
 	public RoundtableURIRequirementBuilder withoutScheme() {
 		for (Iterator<DomainRequirement> iterator = requirements.iterator(); iterator.hasNext();) {
 			DomainRequirement r = iterator.next();
@@ -153,7 +152,7 @@ public class RoundtableURIRequirementBuilder {
 	 *
 	 * @return {@code this}.
 	 */
-	@NonNull
+	@Nonnull
 	public RoundtableURIRequirementBuilder withoutPath() {
 		for (Iterator<DomainRequirement> iterator = requirements.iterator(); iterator.hasNext();) {
 			DomainRequirement r = iterator.next();
@@ -169,7 +168,7 @@ public class RoundtableURIRequirementBuilder {
 	 *
 	 * @return {@code this}.
 	 */
-	@NonNull
+	@Nonnull
 	public RoundtableURIRequirementBuilder withoutHostname() {
 		for (Iterator<DomainRequirement> iterator = requirements.iterator(); iterator.hasNext();) {
 			DomainRequirement r = iterator.next();
@@ -185,7 +184,7 @@ public class RoundtableURIRequirementBuilder {
 	 *
 	 * @return {@code this}.
 	 */
-	@NonNull
+	@Nonnull
 	public RoundtableURIRequirementBuilder withoutHostnamePort() {
 		for (Iterator<DomainRequirement> iterator = requirements.iterator(); iterator.hasNext();) {
 			DomainRequirement r = iterator.next();
@@ -202,7 +201,7 @@ public class RoundtableURIRequirementBuilder {
 	 * @param scheme the scheme to use as a requirement
 	 * @return {@code this}.
 	 */
-	@NonNull
+	@Nonnull
 	public RoundtableURIRequirementBuilder withScheme(@CheckForNull String scheme) {
 		withoutScheme();
 		if (scheme != null) {
@@ -217,7 +216,7 @@ public class RoundtableURIRequirementBuilder {
 	 * @param path to use as a requirement
 	 * @return {@code this}.
 	 */
-	@NonNull
+	@Nonnull
 	public RoundtableURIRequirementBuilder withPath(@CheckForNull String path) {
 		withoutPath();
 		if (path != null) {
@@ -232,7 +231,7 @@ public class RoundtableURIRequirementBuilder {
 	 * @param hostname the hostname to use as a requirement
 	 * @return {@code this}.
 	 */
-	@NonNull
+	@Nonnull
 	public RoundtableURIRequirementBuilder withHostname(@CheckForNull String hostname) {
 		return withHostnamePort(hostname, -1);
 	}
@@ -247,7 +246,7 @@ public class RoundtableURIRequirementBuilder {
 	 *                 {@link com.cloudbees.plugins.credentials.domains.HostnamePortRequirement}s
 	 * @return {@code this}.
 	 */
-	@NonNull
+	@Nonnull
 	public RoundtableURIRequirementBuilder withHostnamePort(@CheckForNull String hostname, int port) {
 		withoutHostname();
 		withoutHostnamePort();
@@ -265,7 +264,7 @@ public class RoundtableURIRequirementBuilder {
 	 *
 	 * @return the list of requirements.
 	 */
-	@NonNull
+	@Nonnull
 	public List<DomainRequirement> build() {
 		return new ArrayList<>(requirements);
 	}

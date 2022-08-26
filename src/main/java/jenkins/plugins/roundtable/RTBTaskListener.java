@@ -1,19 +1,44 @@
 package jenkins.plugins.roundtable;
 
-import java.io.PrintStream;
-
 import hudson.model.TaskListener;
+import ro.acorn.roundtable.rtbclient.RoundtableTaskListener;
 
-public class RTBTaskListener implements TaskListener {
+public class RTBTaskListener implements RoundtableTaskListener {
 
-	public RTBTaskListener() {
-		// TODO Auto-generated constructor stub
+	private final TaskListener listener;
+	
+	public RTBTaskListener(TaskListener listener) {
+		this.listener = listener;
 	}
 
 	@Override
-	public PrintStream getLogger() {
-		// TODO Auto-generated method stub
-		return null;
+	public void info(String msg) {
+		listener.getLogger().println(msg);
+	}
+
+	@Override
+	public void info(String format, Object... args) {
+		info(String.format(format, args));
+	}
+
+	@Override
+	public void error(String msg) {
+		info("[error] " + msg);
+	}
+
+	@Override
+	public void error(String format, Object... args) {
+		error(String.format(format, args));
+	}
+
+	@Override
+	public void fatalError(String msg) {
+		error(msg);
+	}
+
+	@Override
+	public void fatalError(String format, Object... args) {
+		error(format, args);
 	}
 
 }

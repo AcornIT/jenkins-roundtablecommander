@@ -2,6 +2,8 @@ package jenkins.plugins.roundtable;
 
 import java.io.IOException;
 
+import javax.annotation.CheckForNull;
+
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
@@ -14,7 +16,6 @@ import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 
-import edu.umd.cs.findbugs.annotations.CheckForNull;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.Item;
@@ -62,8 +63,7 @@ public class RoundtableSource extends SCMSource {
 
 	@Override
 	public SCM build(SCMHead head, SCMRevision revision) {
-		// TODO Auto-generated method stub
-		return null;
+		return new RoundtableSCM(getRemote(), getCredentialsId());
 	}
 
 	@Override
@@ -92,7 +92,7 @@ public class RoundtableSource extends SCMSource {
 							context instanceof Queue.Task ? Tasks.getAuthenticationOf((Queue.Task) context)
 									: ACL.SYSTEM,
 							context, StandardUsernameCredentials.class, URIRequirementBuilder.fromUri(remote).build(),
-							null)
+							RoundtableSCM.CREDENTIALS_MATCHER)
 					.includeCurrentValue(credentialsId);
 		}
 

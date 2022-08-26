@@ -1,7 +1,7 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-  	<f:entry title="${%Repositories}" field="userRemoteConfigs" >
-		<f:repeatableProperty field="userRemoteConfigs" minimum="1" noAddButton="true"/>
+  	<f:entry title="${%Repository}" field="userRemoteConfig" >
+		<f:property field="userRemoteConfig"/>
   	</f:entry>
   	<f:advanced>
 		<f:entry title="${%Subdirectory for Repository}">

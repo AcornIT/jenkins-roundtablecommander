@@ -10,7 +10,7 @@
 		<version>3.54</version>
 		<relativePath />
 	</parent>
-
+    <groupId>io.jenkins.plugins</groupId>
 	<artifactId>roundtable</artifactId>
 	<version>${revision}${changelist}</version>
 	<packaging>hpi</packaging>
@@ -21,7 +21,7 @@
 	<properties>
 		<revision>4.0.1</revision>
 		<changelist>-SNAPSHOT</changelist>
-		<jenkins.version>2.164.1</jenkins.version>
+		<jenkins.version>2.289.1</jenkins.version>
 		<java.level>8</java.level>
 	</properties>
 	<licenses>
@@ -38,12 +38,21 @@
 			<email>marian.edu@acorn.ro</email>
 		</developer>
 	</developers>
-
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 	<dependencies>
 		<dependency>
 			<groupId>ro.acorn.roundtable</groupId>
 			<artifactId>roundtable-client</artifactId>
-			<version>0.0.2-SNAPSHOT</version>
+			<version>0.0.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
@@ -70,13 +79,10 @@
 		<repository>
 			<id>repo.jenkins-ci.org</id>
 			<url>https://repo.jenkins-ci.org/public/</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
 		</repository>
 		<repository>
 			<id>repo.acorn.ro</id>
-			<url>https://esd.acorn.ro/maven2/</url>
+			<url>https://artifactory.acorn.ro/artifactory/acorn-maven2/</url>
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
@@ -89,7 +95,7 @@
 		</pluginRepository>
 		<pluginRepository>
 			<id>repo.acorn.ro</id>
-			<url>https://esd.acorn.ro/maven2/</url>
+			<url>https://artifactory.acorn.ro/artifactory/acorn-maven2/</url>
 		</pluginRepository>
 	</pluginRepositories>
 </project>

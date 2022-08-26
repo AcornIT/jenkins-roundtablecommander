@@ -24,16 +24,17 @@ import hudson.security.ACL;
 import ro.acorn.roundtable.rtbclient.Roundtable;
 import ro.acorn.roundtable.rtbclient.RoundtableClient;
 import ro.acorn.roundtable.rtbclient.RoundtableException;
+import ro.acorn.roundtable.rtbclient.impl.ConsoleTaskListener;
 
 public class CheckoutCallable implements FileCallable<Void> {
 
 	private static final long serialVersionUID = 1L;
 
-	private final Run<?, ?> build;
-	private final Launcher launcher;
+	private final transient Run<?, ?> build;
+	private final transient Launcher launcher;
 	private final TaskListener listener;
 	private final File changelogFile;
-	private final SCMRevisionState baseline;
+	private final transient SCMRevisionState baseline;
 	private final RoundtableSCM roundtableSCM;
 
 	public CheckoutCallable(Run<?, ?> build, Launcher launcher, TaskListener listener, File changelogFile,
@@ -55,33 +56,27 @@ public class CheckoutCallable implements FileCallable<Void> {
 	public Void invoke(File workspace, VirtualChannel channel) throws IOException, InterruptedException {
 
 		try {
-			RoundtableClient client = Roundtable.in(workspace).getClient();
+			RoundtableClient client = Roundtable.in(workspace).with(new RTBTaskListener(listener)).getClient();
 			Job project = build.getParent();
-			
-			for (UserRemoteConfig remote : roundtableSCM.getUserRemoteConfigs()) {
 
-				client.addRemoteUrl(remote.getName(), remote.getUrl());
-				String credentialsId = remote.getCredentialsId();
+			UserRemoteConfig remote = roundtableSCM.getUserRemoteConfig();
+			client.setRemoteUrl(remote.getUrl());
+			String credentialsId = remote.getCredentialsId();
 
-				if (credentialsId != null) {
-					List<StandardUsernamePasswordCredentials> urlCredentials = CredentialsProvider
-							.lookupCredentials(StandardUsernamePasswordCredentials.class, project,
-									project instanceof Queue.Task
-											? ((Queue.Task) project).getDefaultAuthentication()
-											: ACL.SYSTEM,
-									URIRequirementBuilder.fromUri(remote.getUrl()).build());
-					CredentialsMatcher ucMatcher = CredentialsMatchers.withId(credentialsId);
-					CredentialsMatcher idMatcher = CredentialsMatchers.allOf(ucMatcher,
-							RoundtableSCM.CREDENTIALS_MATCHER);
-					StandardUsernamePasswordCredentials credentials = CredentialsMatchers.firstOrNull(urlCredentials,
-							idMatcher);
-					if (credentials != null)
-						client.setCredentials(remote.getName(), credentials.getUsername(),
-								credentials.getPassword().getPlainText());
-				}
-				
-				client.checkout().execute();
+			if (credentialsId != null) {
+				List<StandardUsernamePasswordCredentials> urlCredentials = CredentialsProvider.lookupCredentials(
+						StandardUsernamePasswordCredentials.class, project,
+						project instanceof Queue.Task ? ((Queue.Task) project).getDefaultAuthentication() : ACL.SYSTEM,
+						URIRequirementBuilder.fromUri(remote.getUrl()).build());
+				CredentialsMatcher ucMatcher = CredentialsMatchers.withId(credentialsId);
+				CredentialsMatcher idMatcher = CredentialsMatchers.allOf(ucMatcher, RoundtableSCM.CREDENTIALS_MATCHER);
+				StandardUsernamePasswordCredentials credentials = CredentialsMatchers.firstOrNull(urlCredentials,
+						idMatcher);
+				if (credentials != null)
+					client.setCredentials(credentials.getUsername(), credentials.getPassword().getPlainText());
 			}
+
+			client.checkout().execute();
 
 		} catch (RoundtableException e) {
 			// TODO Auto-generated catch block
