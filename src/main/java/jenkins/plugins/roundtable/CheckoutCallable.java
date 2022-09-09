@@ -79,8 +79,7 @@ public class CheckoutCallable implements FileCallable<Void> {
 			client.checkout().execute();
 
 		} catch (RoundtableException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new IOException(e.getMessage());
 		}
 		return null;
 
