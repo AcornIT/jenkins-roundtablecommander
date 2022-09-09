@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
-import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
@@ -20,7 +19,6 @@ import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredenti
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.Util;
 import hudson.model.Job;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -35,6 +33,7 @@ public class RoundtableSCM extends SCM implements Serializable {
 	private static final long serialVersionUID = -7960908689871794824L;
 	private final RoundtableRepositoryBrowser browser;
 	private final UserRemoteConfig userRemoteConfig;
+	private final String workingDirectory;
 
 	private static final Logger logger = Logger.getLogger(RoundtableSCM.class.getName());
 
@@ -46,12 +45,13 @@ public class RoundtableSCM extends SCM implements Serializable {
 	}
 
 	public RoundtableSCM(String repositoryUrl, String credentialsId) {
-		this(new UserRemoteConfig(repositoryUrl, null, credentialsId));
+		this(new UserRemoteConfig(repositoryUrl, credentialsId), null);
 	}
 
 	@DataBoundConstructor
-	public RoundtableSCM(UserRemoteConfig userRemoteConfig) {
+	public RoundtableSCM(UserRemoteConfig userRemoteConfig, String workingDirectory) {
 		this.userRemoteConfig = userRemoteConfig;
+		this.workingDirectory = workingDirectory;
 		this.browser = new RoundtableRepositoryBrowser(this);
 	}
 
@@ -66,11 +66,6 @@ public class RoundtableSCM extends SCM implements Serializable {
 	@Override
 	public ChangeLogParser createChangeLogParser() {
 		return new RoundtableChangeLogParser();
-	}
-
-	@Override
-	public boolean supportsPolling() {
-		return false;
 	}
 
 	@Override
@@ -92,18 +87,26 @@ public class RoundtableSCM extends SCM implements Serializable {
 	public UserRemoteConfig getUserRemoteConfig() {
 		return userRemoteConfig;
 	}
+	
+	public String getWorkingDirectory() {
+		return workingDirectory;
+	}
 
-	@Symbol("roundtable")
 	@Extension
 	public static final class DescriptorImpl extends SCMDescriptor<RoundtableSCM> {
 
 		public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
 
-		private String globalConfigName;
-
 		public DescriptorImpl() {
 			super(RoundtableSCM.class, RoundtableRepositoryBrowser.class);
 			load();
+		}
+		
+		@Override
+		public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+			RoundtableSCM scm = req.bindJSON(RoundtableSCM.class, formData);
+
+			return scm;
 		}
 
 		public String getDisplayName() {
@@ -115,26 +118,9 @@ public class RoundtableSCM extends SCM implements Serializable {
 			return true;
 		}
 
-		/**
-		 * Global setting to be used in call to "git config user.name".
-		 * 
-		 * @return user.name value
-		 */
-		public String getGlobalConfigName() {
-			return Util.fixEmptyAndTrim(globalConfigName);
-		}
-
-		/**
-		 * Global setting to be used in call to "git config user.name".
-		 * 
-		 * @param globalConfigName user.name value to be assigned
-		 */
-		public void setGlobalConfigName(String globalConfigName) {
-			this.globalConfigName = globalConfigName;
-		}
-
 		@Override
 		public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
+			req.bindJSON(this, formData);
 			save();
 			return true;
 		}

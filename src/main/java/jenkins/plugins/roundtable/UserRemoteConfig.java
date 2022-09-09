@@ -50,20 +50,13 @@ public class UserRemoteConfig extends AbstractDescribableImpl<UserRemoteConfig> 
 	 * 
 	 */
 	private static final long serialVersionUID = -9202593335571506891L;
-	private String name;
 	private String url;
 	private String credentialsId;
 
 	@DataBoundConstructor
-	public UserRemoteConfig(String url, String name, String credentialsId) {
+	public UserRemoteConfig(String url, String credentialsId) {
 		this.url = fixEmptyAndTrim(url);
-		this.name = fixEmpty(name);
 		this.credentialsId = fixEmpty(credentialsId);
-	}
-
-	@Exported
-	public String getName() {
-		return name;
 	}
 
 	@Exported
@@ -77,7 +70,7 @@ public class UserRemoteConfig extends AbstractDescribableImpl<UserRemoteConfig> 
 	}
 
 	public String toString() {
-		return getUrl() + " (" + getName() + ")";
+		return getUrl();
 	}
 
 	@Extension
@@ -183,18 +176,6 @@ public class UserRemoteConfig extends AbstractDescribableImpl<UserRemoteConfig> 
 			} catch (RoundtableException e) {
 				return FormValidation.error(e.getMessage());
 			}
-
-//			// Should not track credentials use in any checkURL method, rather should track
-//			// credentials use at the point where the credential is used to perform an
-//			// action (like poll the repository, clone the repository, publish a change
-//			// to the repository).
-//
-//			// attempt to connect the provided URL
-//			try {
-//				git.getHeadRev(url, "HEAD");
-//			} catch (Exception e) {
-//				
-//			}
 
 			return FormValidation.ok();
 		}
