@@ -101,13 +101,6 @@ public class RoundtableSCM extends SCM implements Serializable {
 			super(RoundtableSCM.class, RoundtableRepositoryBrowser.class);
 			load();
 		}
-		
-		@Override
-		public SCM newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-			RoundtableSCM scm = req.bindJSON(RoundtableSCM.class, formData);
-
-			return scm;
-		}
 
 		public String getDisplayName() {
 			return "Roundtable";
