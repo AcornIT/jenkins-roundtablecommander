@@ -16,3 +16,15 @@ f.entry(title:_("Credentials"), field:"credentialsId") {
             r = null;
     }""" /* workaround for JENKINS-19124 */)
 }
+
+f.advanced {
+    f.entry(title:_("Name"), field:"name") {
+        f.textbox()
+    }
+}
+
+f.entry {
+    div(class: "show-if-not-only") {
+        f.repeatableDeleteButton()
+    }
+}

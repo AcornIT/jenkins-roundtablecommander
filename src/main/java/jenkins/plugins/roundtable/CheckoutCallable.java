@@ -24,7 +24,6 @@ import hudson.security.ACL;
 import ro.acorn.roundtable.rtbclient.Roundtable;
 import ro.acorn.roundtable.rtbclient.RoundtableClient;
 import ro.acorn.roundtable.rtbclient.RoundtableException;
-import ro.acorn.roundtable.rtbclient.impl.ConsoleTaskListener;
 
 public class CheckoutCallable implements FileCallable<Void> {
 
@@ -57,27 +56,21 @@ public class CheckoutCallable implements FileCallable<Void> {
 
 		try {
 			RoundtableClient client = Roundtable.in(workspace).with(new RTBTaskListener(listener)).getClient();
-			Job project = build.getParent();
+			Job job = build.getParent();
 
-			UserRemoteConfig remote = roundtableSCM.getUserRemoteConfig();
-			client.setRemoteUrl(remote.getUrl());
-			String credentialsId = remote.getCredentialsId();
+			for (UserRemoteConfig remote : roundtableSCM.getUserRemoteConfigs()) {
 
-			if (credentialsId != null) {
-				List<StandardUsernamePasswordCredentials> urlCredentials = CredentialsProvider.lookupCredentials(
-						StandardUsernamePasswordCredentials.class, project,
-						project instanceof Queue.Task ? ((Queue.Task) project).getDefaultAuthentication() : ACL.SYSTEM,
-						URIRequirementBuilder.fromUri(remote.getUrl()).build());
-				CredentialsMatcher ucMatcher = CredentialsMatchers.withId(credentialsId);
-				CredentialsMatcher idMatcher = CredentialsMatchers.allOf(ucMatcher, RoundtableSCM.CREDENTIALS_MATCHER);
-				StandardUsernamePasswordCredentials credentials = CredentialsMatchers.firstOrNull(urlCredentials,
-						idMatcher);
+				client.setRemoteUrl(remote.getUrl());
+				StandardUsernamePasswordCredentials credentials = getCredentials(job, remote);
+
 				if (credentials != null)
 					client.setCredentials(credentials.getUsername(), credentials.getPassword().getPlainText());
+
+				for (BranchSpec branch : roundtableSCM.getBranches()) {
+					client.checkout().branch(branch.getName()).execute();
+				}
+
 			}
-
-			client.checkout().execute();
-
 		} catch (RoundtableException e) {
 			throw new IOException(e.getMessage());
 		}
@@ -85,4 +78,17 @@ public class CheckoutCallable implements FileCallable<Void> {
 
 	}
 
+	private StandardUsernamePasswordCredentials getCredentials(Job job, UserRemoteConfig remote) {
+		if (remote != null && remote.getCredentialsId() != null) {
+			List<StandardUsernamePasswordCredentials> urlCredentials = CredentialsProvider.lookupCredentials(
+					StandardUsernamePasswordCredentials.class, job,
+					job instanceof Queue.Task ? ((Queue.Task) job).getDefaultAuthentication() : ACL.SYSTEM,
+					URIRequirementBuilder.fromUri(remote.getUrl()).build());
+			CredentialsMatcher ucMatcher = CredentialsMatchers.withId(remote.getCredentialsId());
+			CredentialsMatcher idMatcher = CredentialsMatchers.allOf(ucMatcher, RoundtableSCM.CREDENTIALS_MATCHER);
+			return CredentialsMatchers.firstOrNull(urlCredentials, idMatcher);
+		}
+
+		return null;
+	}
 }

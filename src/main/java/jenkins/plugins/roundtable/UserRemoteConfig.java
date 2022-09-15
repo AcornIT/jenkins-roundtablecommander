@@ -24,6 +24,7 @@ import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
@@ -51,11 +52,13 @@ public class UserRemoteConfig extends AbstractDescribableImpl<UserRemoteConfig> 
 	 */
 	private static final long serialVersionUID = -9202593335571506891L;
 	private String url;
+	private String name;
 	private String credentialsId;
 
 	@DataBoundConstructor
-	public UserRemoteConfig(String url, String credentialsId) {
+	public UserRemoteConfig(String url, String name, @CheckForNull String credentialsId) {
 		this.url = fixEmptyAndTrim(url);
+		this.name = fixEmpty(name);
 		this.credentialsId = fixEmpty(credentialsId);
 	}
 
@@ -69,8 +72,13 @@ public class UserRemoteConfig extends AbstractDescribableImpl<UserRemoteConfig> 
 		return credentialsId;
 	}
 
+	@Exported
+	public String getName() {
+		return name;
+	}
+	
 	public String toString() {
-		return getUrl();
+		return getUrl() + " (" + getName() + ")";
 	}
 
 	@Extension
