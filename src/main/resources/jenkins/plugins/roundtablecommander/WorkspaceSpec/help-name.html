@@ -1,0 +1,28 @@
+<div>
+  <p>Specify the Roundtable workspaces if you'd like to track a specific workspace in a repository.
+  If left blank, all workspaces will be examined for changes and built.</p>
+
+  <p>Possible options:
+    <ul>
+      <li> <strong><code>&lt;workspaceName&gt;</code></strong><br/>
+           Tracks/checks out the specified workspace from the remote repository.<br/>
+           E.g. <code>master</code>, <code>feature1</code>, ...
+      </li>
+      <li> <strong><code>&lt;workspaceName&gt;@&lt;releaseName&gt;</code></strong><br/>
+           Tracks/checks out the specified release of the workspace.<br/>
+           E.g. <code>master@ver-2.3.0</code>
+      </li>
+      
+      <li> <strong><code>${ENV_VARIABLE}</code></strong><br/>
+           It is also possible to use environment variables. In this case the variables are evaluated and the
+           result is used as described above.<br/>
+           E.g. <code>${TREEISH}</code>, ...
+      </li>
+      <li> <strong><code>&lt;Wildcards&gt;</code></strong><br/>
+           When used the '*' is recognized as a wildcard.
+           Therefore, <code>work*</code> would match <code>work-foo</code>.
+      </li>
+
+    </ul>
+  </p>
+</div>

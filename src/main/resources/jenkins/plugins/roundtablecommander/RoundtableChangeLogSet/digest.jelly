@@ -1,0 +1,27 @@
+<?jelly escape-by-default='true'?>
+<!--
+  Displays the Roundtable change log digest for the build top page 
+  when a build history link (or number) is followed
+  e.g http://<hudson server>/job/<project>/<build number>/
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <j:set var="browser" value="${it.browser}"/>
+
+  <j:choose>
+    <j:when test="${it.emptySet}">
+      ${%No changes.}
+    </j:when>
+    <j:otherwise>
+      ${%Changes}
+      <ol>
+        <j:forEach var="cs" items="${it.entries}">
+          <li>
+            <j:out value="${cs.comment}"/>
+            (<a href="changes#${cs.revision}">${%details}</a>
+            <j:text>)</j:text>
+          </li>
+        </j:forEach>
+      </ol>
+    </j:otherwise>
+  </j:choose>
+</j:jelly>
