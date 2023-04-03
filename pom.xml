@@ -1,36 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>3.54</version>
+		<version>4.47</version>
 		<relativePath />
 	</parent>
-
-	<artifactId>roundtable</artifactId>
+	<artifactId>roundtablecommander</artifactId>
 	<version>${revision}${changelist}</version>
 	<packaging>hpi</packaging>
-	<name>Jenkins Roundtable plugin</name>
-	<description>Integrates Jenkins with Roundtable SCM</description>
-	<url>https://acorn.ro/jenkinsci/roundtable-plugin</url>
-	<inceptionYear>2019</inceptionYear>
+	<name>Jenkins Roundtable Commander plugin</name>
+	<url>https://acorn.ro/jenkinsci/roundtablecommander-plugin</url>
+	<inceptionYear>2023</inceptionYear>
 	<properties>
-		<revision>4.0.1</revision>
+		<revision>1.0.0</revision>
 		<changelist>-SNAPSHOT</changelist>
-		<jenkins.version>2.164.1</jenkins.version>
-		<java.level>8</java.level>
+		<jenkins.version>2.332.4</jenkins.version>
+		<java.version>11</java.version>
 	</properties>
 	<licenses>
 		<license>
-			<name>MIT License</name>
-			<url>https://opensource.org/licenses/MIT</url>
+			<name>GNU LGPL License</name>
+			<url>https://www.gnu.org/licenses/lgpl-3.0.en.html</url>
 		</license>
 	</licenses>
-
 	<developers>
 		<developer>
 			<id>marian</id>
@@ -38,27 +32,63 @@
 			<email>marian.edu@acorn.ro</email>
 		</developer>
 	</developers>
-
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<release>${java.version}</release>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.jenkins.tools.bom</groupId>
+				<artifactId>bom-2.332.x</artifactId>
+				<version>1607.va_c1576527071</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<dependencies>
+		<dependency>
+			<groupId>ro.acorn.roundtable</groupId>
+			<artifactId>roundtable-client</artifactId>
+			<version>0.0.5</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.14.2</version>
+		</dependency>
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>credentials</artifactId>
-			<version>2.1.16</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>scm-api</artifactId>
-			<version>2.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>script-security</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.jenkins-ci.plugins.workflow</groupId>
 			<artifactId>workflow-step-api</artifactId>
-			<version>2.13</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jenkins-ci.plugins.workflow</groupId>
 			<artifactId>workflow-scm-step</artifactId>
-			<version>2.6</version>
 		</dependency>
 	</dependencies>
 	<repositories>
@@ -66,11 +96,22 @@
 			<id>repo.jenkins-ci.org</id>
 			<url>https://repo.jenkins-ci.org/public/</url>
 		</repository>
+		<repository>
+			<id>repo.acorn.ro</id>
+			<url>https://artifactory.acorn.ro/artifactory/acorn-maven2/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
 	</repositories>
 	<pluginRepositories>
 		<pluginRepository>
 			<id>repo.jenkins-ci.org</id>
 			<url>https://repo.jenkins-ci.org/public/</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>repo.acorn.ro</id>
+			<url>https://artifactory.acorn.ro/artifactory/acorn-maven2/</url>
 		</pluginRepository>
 	</pluginRepositories>
 </project>

@@ -1,0 +1,16 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <f:section title="${%Roundtable Commander plugin}">
+    <f:entry title="${%Shallow Depth}" field="shallowDepth">
+    	<f:textbox default="0" />
+    </f:entry>
+    <f:entry title="${%Registration}" field="regData">
+    	<f:textarea default="" />
+    </f:entry>
+    <f:entry field="addTagAction">
+      <f:checkbox title="${%Add tag action to jobs}" name="addTagAction" checked="${descriptor.addTagAction}"/>
+    </f:entry>
+  </f:section>  
+</j:jelly>
+

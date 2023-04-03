@@ -1,0 +1,37 @@
+<?jelly escape-by-default='true'?>
+<!--
+  Displays Roundtable change log.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <j:set var="browser" value="${it.browser}"/>
+
+  <h2>${%Summary}</h2>
+  <ol>
+    <j:forEach var="cs" items="${it.entries}">
+      <li><j:out value="${cs.msg}"/> (<a href="#${cs.revision}">${%details}</a>)</li>
+    </j:forEach>
+  </ol>
+  <table class="pane" style="border:none">
+    <j:forEach var="cs" items="${it.entries}">
+      <tr class="pane">
+        <td colspan="2" class="changeset">
+          <div class="changeset-message" id="${cs.revision}">
+            <strong>
+              ${%Commit}
+              ${cs.revision}
+              by <a href="${rootURL}/${cs.author.url}/">${cs.author.displayName}</a>
+            </strong>
+            <pre><j:out value="${cs.comment}"/></pre>
+          </div>
+        </td>
+      </tr>
+      <j:forEach var="p" items="${cs.affectedFiles}">
+        <tr>
+          <td width="16"><t:editTypeIcon type="${p.editType}"/></td>
+          <td>${p.path}</td>
+        </tr>
+      </j:forEach>
+    </j:forEach>
+    
+  </table>
+</j:jelly>

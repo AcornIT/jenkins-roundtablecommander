@@ -1,0 +1,20 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+    <f:entry title="${%Repositories}" field="remoteConfigs" >
+        <f:repeatableProperty field="remoteConfigs" minimum="1" add="${%Add Repository}"/>
+    </f:entry>
+
+    <f:entry title="${%Checkout Workspace}" field="initCheckout">
+          <f:textbox />
+    </f:entry>
+       
+	<f:advanced>
+	   <f:entry title="${%Subdirectory for Repository}" field="workingDirectory">
+          <f:textbox />
+       </f:entry>
+  	</f:advanced>
+    	
+    <j:set var="scm" value="${instance}"/>
+
+</j:jelly>
