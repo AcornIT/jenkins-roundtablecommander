@@ -5,6 +5,8 @@ import static hudson.Util.fixEmptyAndTrim;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -64,7 +66,7 @@ public class RemoteConfig extends AbstractDescribableImpl<RemoteConfig> implemen
 		this.url = fixEmptyAndTrim(url);
 		this.name = fixEmpty(name);
 		this.credentialsId = fixEmpty(credentialsId);
-		this.workspaces = workspaces;
+		this.workspaces = new ArrayList<>(workspaces);
 	}
 
 	@Exported
@@ -84,7 +86,7 @@ public class RemoteConfig extends AbstractDescribableImpl<RemoteConfig> implemen
 	
 	@Exported
 	public List<WorkspaceSpec> getWorkspaces() {
-		return workspaces;
+		return Collections.unmodifiableList(workspaces);
 	}
 	
 	public String toString() {

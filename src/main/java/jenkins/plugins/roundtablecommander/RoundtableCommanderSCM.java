@@ -3,6 +3,10 @@ package jenkins.plugins.roundtablecommander;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.CheckForNull;
@@ -15,22 +19,38 @@ import org.kohsuke.stapler.export.Exported;
 
 import com.cloudbees.plugins.credentials.CredentialsMatcher;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Job;
+import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.remoting.VirtualChannel;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
+import hudson.security.ACL;
 import hudson.security.Permission;
+import jenkins.MasterToSlaveFileCallable;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+import ro.acorn.roundtable.model.ICommit;
+import ro.acorn.roundtable.rtbclient.IRoundtableClient;
+import ro.acorn.roundtable.rtbclient.RoundtableException;
+import ro.acorn.roundtable.rtbclient.UserPasswordCredentials;
+import ro.acorn.roundtable.rtbclient.command.impl.BranchCopyCommand;
+import ro.acorn.roundtable.rtbclient.command.impl.CheckoutCommand;
+import ro.acorn.roundtable.rtbclient.command.impl.FetchCommand;
+import ro.acorn.roundtable.rtbclient.impl.RoundtableClient;
 
 public class RoundtableCommanderSCM extends SCM implements Serializable {
 
@@ -53,7 +73,7 @@ public class RoundtableCommanderSCM extends SCM implements Serializable {
 	@DataBoundConstructor
 	public RoundtableCommanderSCM(List<RemoteConfig> remoteConfigs, String workingDirectory, String initCheckout,
 			@CheckForNull RoundtableRepositoryBrowser browser) {
-		this.remoteConfigs = remoteConfigs;
+		this.remoteConfigs = new ArrayList<>(remoteConfigs);
 		this.workingDirectory = workingDirectory;
 		this.initCheckout = initCheckout;
 		this.browser = new RoundtableRepositoryBrowser(this);
@@ -64,7 +84,55 @@ public class RoundtableCommanderSCM extends SCM implements Serializable {
 			@Nonnull TaskListener listener, @CheckForNull File changelogFile, @CheckForNull SCMRevisionState baseline)
 			throws IOException, InterruptedException {
 
-		workspace.act(new CheckoutCallable(build, launcher, listener, changelogFile, baseline, this));
+		try {
+			IRoundtableClient client = workspace.act(new RoundtableClientMasterToSlaveFileCallable(getRegData()));
+
+			client.addLogger(new RTBTaskListener(listener));
+
+			final Job<?, ?> job = build.getParent();
+			final EnvVars envs = build.getEnvironment(listener);
+			String initWorkspace = getInitCheckout();
+			List<String> workspaces = new ArrayList<>();
+			List<ICommit> commits = new ArrayList<>();
+
+			for (RemoteConfig remoteConfig : getRemoteConfigs()) {
+				UserPasswordCredentials credentials = getCredentials(job, remoteConfig);
+				String name = remoteConfig.getName() != null ? remoteConfig.getName() : "origin";
+
+				// check if remote already exists, else add it here
+				if (!client.getRemotes().stream().anyMatch(r -> r.namesMatch(name, r.getName()))) {
+					client.addRemote(name, remoteConfig.getUrl());
+				}
+
+				Collection<String> remoteBranches = client.getRemoteBranches(name, credentials);
+				HashMap<String, Integer> matchingBranches = new HashMap<>();
+
+				remoteConfig.getWorkspaces().forEach(spec -> {
+					spec.filterMatching(remoteBranches, envs).forEach(b -> {
+						workspaces.add(b);
+						matchingBranches.put(b, spec.getShallow());
+					});
+				});
+
+				matchingBranches.entrySet().forEach(b -> {
+					commits.addAll(fetchBranch(client, b.getKey(), name, b.getValue(), credentials));
+				});
+			}
+
+			// check out the first branch that matched by default
+			if ((initWorkspace == null || initWorkspace.isBlank()) && !workspaces.isEmpty()) {
+				initWorkspace = workspaces.get(0);
+			}
+
+			if (initWorkspace != null && !initWorkspace.isBlank()) {
+				client.checkout(new CheckoutCommand(initWorkspace, null, null, true, true, false));
+			}
+
+			writeChangeLog(changelogFile, commits, listener);
+
+		} catch (RoundtableException e) {
+			throw new IOException(e.getMessage());
+		}
 	}
 
 	@Override
@@ -85,7 +153,7 @@ public class RoundtableCommanderSCM extends SCM implements Serializable {
 
 	@Exported
 	public List<RemoteConfig> getRemoteConfigs() {
-		return remoteConfigs;
+		return Collections.unmodifiableList(remoteConfigs);
 	}
 
 	@Exported
@@ -128,11 +196,11 @@ public class RoundtableCommanderSCM extends SCM implements Serializable {
 		@NonNull
 		@Override
 		public Permission getRequiredGlobalConfigPagePermission() {
-			return Jenkins.MANAGE;
+			return Jenkins.ADMINISTER;
 		}
 
 		Permission getJenkinsManageOrAdmin() {
-			return Jenkins.MANAGE;
+			return Jenkins.ADMINISTER;
 		}
 
 		public String getDisplayName() {
@@ -177,10 +245,74 @@ public class RoundtableCommanderSCM extends SCM implements Serializable {
 
 	}
 
+	private static class RoundtableClientMasterToSlaveFileCallable extends MasterToSlaveFileCallable<RoundtableClient> {
+
+		private static final long serialVersionUID = 3994075442604771557L;
+		private final String regData;
+
+		public RoundtableClientMasterToSlaveFileCallable(String regData) {
+			this.regData = regData;
+		}
+
+		@Override
+		public RoundtableClient invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
+			return RoundtableClient.in(f, regData);
+		}
+
+	}
+
 	@Override
 	public SCMRevisionState calcRevisionsFromBuild(Run<?, ?> build, FilePath workspace, Launcher launcher,
 			TaskListener listener) throws IOException, InterruptedException {
 		return super.calcRevisionsFromBuild(build, workspace, launcher, listener);
+	}
+
+	private Collection<ICommit> fetchBranch(IRoundtableClient client, String branch, String remote, int shallowDepth,
+			UserPasswordCredentials credentials) {
+		boolean existing = client.getBranches().stream().anyMatch(b -> branch.equals(b.getName()));
+		String remoteBranch = String.format("remotes/%s/%s", remote, branch);
+
+		Collection<ICommit> commits = client.fetch(new FetchCommand(existing ? branch : remoteBranch, credentials,
+				false, false, true, shallowDepth, true, false));
+
+		if (!existing) {
+			client.copy(new BranchCopyCommand(remoteBranch, branch, null, true));
+		}
+
+		return commits;
+	}
+
+	private void writeChangeLog(File changelogFile, Collection<ICommit> commits, TaskListener listener) {
+
+		if (commits != null && !commits.isEmpty()) {
+
+			try {
+				ObjectMapper mapper = new ObjectMapper();
+				mapper.writeValue(changelogFile, commits);
+			} catch (Exception e) {
+				listener.error("Error writing the change log file: \"%s\".", e.getMessage());
+			}
+		}
+	}
+
+	private UserPasswordCredentials getCredentials(Job<?, ?> job, RemoteConfig remote) {
+		if (remote != null && remote.getCredentialsId() != null) {
+			List<StandardUsernamePasswordCredentials> urlCredentials = CredentialsProvider.lookupCredentials(
+					StandardUsernamePasswordCredentials.class, job,
+					job instanceof Queue.Task ? ((Queue.Task) job).getDefaultAuthentication() : ACL.SYSTEM,
+					URIRequirementBuilder.fromUri(remote.getUrl()).build());
+			CredentialsMatcher ucMatcher = CredentialsMatchers.withId(remote.getCredentialsId());
+			CredentialsMatcher idMatcher = CredentialsMatchers.allOf(ucMatcher,
+					RoundtableCommanderSCM.CREDENTIALS_MATCHER);
+			StandardUsernamePasswordCredentials credentials = CredentialsMatchers.firstOrNull(urlCredentials,
+					idMatcher);
+
+			if (credentials != null) {
+				return new UserPasswordCredentials(credentials.getUsername(), credentials.getPassword().getPlainText());
+			}
+		}
+
+		return null;
 	}
 
 }
