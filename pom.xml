@@ -4,20 +4,20 @@
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>4.47</version>
+		<version>4.52</version>
 		<relativePath />
 	</parent>
 	<groupId>io.jenkins.plugins</groupId>
 	<artifactId>roundtablecommander</artifactId>
 	<version>${revision}${changelist}</version>
 	<packaging>hpi</packaging>
-	<name>Jenkins Roundtable Commander plugin</name>
+	<name>Roundtable Commander plugin</name>
 	<url>https://acorn.ro/jenkinsci/roundtablecommander</url>
 	<inceptionYear>2023</inceptionYear>
 	<properties>
 		<revision>1.0.0</revision>
 		<changelist>-SNAPSHOT</changelist>
-		<jenkins.version>2.332.4</jenkins.version>
+		<jenkins.version>2.361.4</jenkins.version>
 		<gitHubRepo>jenkinsci/${project.artifactId}</gitHubRepo>
 		<java.version>11</java.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
@@ -31,6 +31,7 @@
 	</licenses>
 	<scm>
 		<connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
+		<developerConnection>scm:git:akera-io@github.com:${gitHubRepo}.git</developerConnection>
 		<tag>${scmTag}</tag>
 		<url>https://github.com/${gitHubRepo}</url>
 	</scm>
