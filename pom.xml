@@ -21,8 +21,8 @@
 	</properties>
 	<licenses>
 		<license>
-			<name>MIT License</name>
-			<url>https://opensource.org/licenses/MIT</url>
+			<name>GNU LGPL License</name>
+			<url>https://www.gnu.org/licenses/lgpl-3.0.en.html</url>
 		</license>
 	</licenses>
 	<developers>
