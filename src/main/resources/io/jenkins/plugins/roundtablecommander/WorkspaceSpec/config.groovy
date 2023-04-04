@@ -1,4 +1,4 @@
-package jenkins.plugins.roundtablecommander.WorkspaceSpec
+package io.jenkins.plugins.roundtablecommander.WorkspaceSpec
 
 f = namespace(lib.FormTagLib)
 

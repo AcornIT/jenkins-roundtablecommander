@@ -1,4 +1,4 @@
-package jenkins.plugins.roundtablecommander.RemoteConfig
+package io.jenkins.plugins.roundtablecommander.RemoteConfig
 
 f = namespace(lib.FormTagLib)
 c = namespace(lib.CredentialsTagLib)

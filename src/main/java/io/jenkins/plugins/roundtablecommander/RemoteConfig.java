@@ -1,4 +1,4 @@
-package jenkins.plugins.roundtablecommander;
+package io.jenkins.plugins.roundtablecommander;
 
 import static hudson.Util.fixEmpty;
 import static hudson.Util.fixEmptyAndTrim;
@@ -96,6 +96,7 @@ public class RemoteConfig extends AbstractDescribableImpl<RemoteConfig> implemen
 	@Extension
 	public static class DescriptorImpl extends Descriptor<RemoteConfig> {
 
+		@RequirePOST
 		public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item project, @QueryParameter String url,
 				@QueryParameter String credentialsId) {
 			if (project == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER)
@@ -115,6 +116,7 @@ public class RemoteConfig extends AbstractDescribableImpl<RemoteConfig> implemen
 					.includeCurrentValue(credentialsId);
 		}
 
+		@RequirePOST
 		public FormValidation doCheckCredentialsId(@AncestorInPath Item project, @QueryParameter String url,
 				@QueryParameter String value) {
 			if (project == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER)

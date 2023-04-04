@@ -1,4 +1,4 @@
-package jenkins.plugins.roundtablecommander;
+package io.jenkins.plugins.roundtablecommander;
 
 import java.io.File;
 import java.io.IOException;

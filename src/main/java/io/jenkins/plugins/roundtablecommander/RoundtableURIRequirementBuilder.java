@@ -1,4 +1,4 @@
-package jenkins.plugins.roundtablecommander;
+package io.jenkins.plugins.roundtablecommander;
 
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.cloudbees.plugins.credentials.domains.HostnamePortRequirement;

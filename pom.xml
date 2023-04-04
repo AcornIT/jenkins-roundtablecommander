@@ -12,15 +12,12 @@
 	<version>${revision}${changelist}</version>
 	<packaging>hpi</packaging>
 	<name>Roundtable Commander plugin</name>
-	<url>https://acorn.ro/jenkinsci/roundtablecommander</url>
 	<inceptionYear>2023</inceptionYear>
 	<properties>
 		<revision>1.0.0</revision>
 		<changelist>-SNAPSHOT</changelist>
 		<jenkins.version>2.361.4</jenkins.version>
-		<gitHubRepo>jenkinsci/${project.artifactId}</gitHubRepo>
-		<java.version>11</java.version>
-		<maven.compiler.release>${java.version}</maven.compiler.release>
+		<gitHubRepo>AcornIT/jenkins-${project.artifactId}</gitHubRepo>
 	</properties>
 	<licenses>
 		<license>
@@ -46,7 +43,7 @@
 		<dependencies>
 			<dependency>
 				<groupId>io.jenkins.tools.bom</groupId>
-				<artifactId>bom-2.332.x</artifactId>
+				<artifactId>bom-2.361.x</artifactId>
 				<version>1607.va_c1576527071</version>
 				<type>pom</type>
 				<scope>import</scope>
@@ -60,9 +57,8 @@
 			<version>0.0.5</version>
 		</dependency>
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>2.14.2</version>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>jackson2-api</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
@@ -108,69 +104,4 @@
 			<url>https://artifactory.acorn.ro/artifactory/acorn-maven2/</url>
 		</pluginRepository>
 	</pluginRepositories>
-	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>com.diffplug.spotless</groupId>
-					<artifactId>spotless-maven-plugin</artifactId>
-					<version>2.25.0</version>
-					<configuration>
-						<!-- define a language-specific format -->
-						<java>
-							<!-- no need to specify files, inferred automatically -->
-							<endWithNewline />
-							<removeUnusedImports />
-						</java>
-						<pom>
-							<sortPom>
-								<encoding>${project.build.sourceEncoding}</encoding>
-								<lineSeparator>\n</lineSeparator>
-								<expandEmptyElements>false</expandEmptyElements>
-								<spaceBeforeCloseEmptyElement>true</spaceBeforeCloseEmptyElement>
-							</sortPom>
-						</pom>
-					</configuration>
-					<executions>
-						<execution>
-							<!-- Runs in verify phase by default -->
-							<goals>
-								<!-- Can be disabled using -Dspotless.check.skip -->
-								<goal>check</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<release>${java.version}</release>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>3.2.0</version>
-				<configuration>
-					<configLocation>google_checks.xml</configLocation>
-					<failOnViolation>true</failOnViolation>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>com.github.spotbugs</groupId>
-				<artifactId>spotbugs-maven-plugin</artifactId>
-				<dependencies>
-					<dependency>
-						<groupId>com.github.spotbugs</groupId>
-						<artifactId>spotbugs</artifactId>
-						<version>4.7.2</version>
-					</dependency>
-				</dependencies>
-			</plugin>
-		</plugins>
-	</build>
 </project>

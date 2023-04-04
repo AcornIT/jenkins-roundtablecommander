@@ -1,4 +1,4 @@
-package jenkins.plugins.roundtablecommander;
+package io.jenkins.plugins.roundtablecommander;
 
 import java.util.ArrayList;
 import java.util.Collection;

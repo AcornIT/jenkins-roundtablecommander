@@ -1,4 +1,4 @@
-package jenkins.plugins.roundtablecommander;
+package io.jenkins.plugins.roundtablecommander;
 
 import hudson.model.TaskListener;
 import ro.acorn.roundtable.logging.RoundtableLogger;

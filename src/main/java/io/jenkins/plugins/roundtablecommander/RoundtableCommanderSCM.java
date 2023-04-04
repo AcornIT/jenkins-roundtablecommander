@@ -1,4 +1,4 @@
-package jenkins.plugins.roundtablecommander;
+package io.jenkins.plugins.roundtablecommander;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.annotation.CheckForNull;
@@ -92,7 +92,7 @@ public class RoundtableCommanderSCM extends SCM implements Serializable {
 			final Job<?, ?> job = build.getParent();
 			final EnvVars envs = build.getEnvironment(listener);
 			String initWorkspace = getInitCheckout();
-			List<String> workspaces = new ArrayList<>();
+			LinkedHashMap<String, Integer> matchingBranches = new LinkedHashMap<>();
 			List<ICommit> commits = new ArrayList<>();
 
 			for (RemoteConfig remoteConfig : getRemoteConfigs()) {
@@ -105,14 +105,18 @@ public class RoundtableCommanderSCM extends SCM implements Serializable {
 				}
 
 				Collection<String> remoteBranches = client.getRemoteBranches(name, credentials);
-				HashMap<String, Integer> matchingBranches = new HashMap<>();
 
-				remoteConfig.getWorkspaces().forEach(spec -> {
-					spec.filterMatching(remoteBranches, envs).forEach(b -> {
-						workspaces.add(b);
-						matchingBranches.put(b, spec.getShallow());
+				if (remoteConfig.getWorkspaces() != null && !remoteConfig.getWorkspaces().isEmpty()) {
+					remoteConfig.getWorkspaces().forEach(spec -> {
+						spec.filterMatching(remoteBranches, envs).forEach(b -> {
+							matchingBranches.put(b, spec.getShallow());
+						});
 					});
-				});
+				} else {
+					remoteBranches.forEach(b -> {
+						matchingBranches.put(b, getShallowDepth());
+					});
+				}
 
 				matchingBranches.entrySet().forEach(b -> {
 					commits.addAll(fetchBranch(client, b.getKey(), name, b.getValue(), credentials));
@@ -120,11 +124,11 @@ public class RoundtableCommanderSCM extends SCM implements Serializable {
 			}
 
 			// check out the first branch that matched by default
-			if ((initWorkspace == null || initWorkspace.isBlank()) && !workspaces.isEmpty()) {
-				initWorkspace = workspaces.get(0);
+			if ((initWorkspace == null || initWorkspace.isBlank())) {
+				initWorkspace = matchingBranches.keySet().stream().findFirst().orElse(null);
 			}
 
-			if (initWorkspace != null && !initWorkspace.isBlank()) {
+			if (initWorkspace != null) {
 				client.checkout(new CheckoutCommand(initWorkspace, null, null, true, true, false));
 			}
 
@@ -264,7 +268,7 @@ public class RoundtableCommanderSCM extends SCM implements Serializable {
 	@Override
 	public SCMRevisionState calcRevisionsFromBuild(Run<?, ?> build, FilePath workspace, Launcher launcher,
 			TaskListener listener) throws IOException, InterruptedException {
-		return super.calcRevisionsFromBuild(build, workspace, launcher, listener);
+		return SCMRevisionState.NONE;
 	}
 
 	private Collection<ICommit> fetchBranch(IRoundtableClient client, String branch, String remote, int shallowDepth,
